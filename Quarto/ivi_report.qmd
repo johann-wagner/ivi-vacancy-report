@@ -1,0 +1,1017 @@
+---
+format:
+  docx:
+    reference-doc: Reference Doc/vacancy_report_template.docx
+params:
+  date_today: "date_today"
+---
+
+<!--#  The following code chunk calls relevant R scripts that run relevant setup and configuration code, and load and transform the most recent IVI data. This code chunk and its output is not displayed in the quarto-produced word document through the use of the 'echo' and 'include' execution options.-->
+
+```{r Data Pipelines}
+#| echo: false
+#| include: false
+
+# Purpose: To load in packages, any custom-functions, and parameters
+# date_today is the main parameter determining the ivi_release_date,
+# spotlight_occupation, and next_ivi_release_date variables.
+date_today <- params$date_today
+
+source(
+  here::here(
+    "Scripts",
+    "00_setup_and_configuration.R"
+  )
+)
+
+
+
+# Purpose: To load in the most recent, finalised, long format IVI results.
+source(
+  here::here(
+    "Scripts",
+    "01_data_loading.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To create the absolute/percentage changes
+source(
+  here::here(
+    "Scripts",
+    "02_data_wrangling.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To subset the most recent, finalised, long format IVI results.
+#          This filtering minimises code duplication and potential coding error.
+source(
+  here::here(
+    "Scripts",
+    "03_data_subsetting.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To load in the most recent, finalised, long format IVI results.
+source(
+  here::here(
+    "Scripts",
+    "04_data_transformation.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To create data visualisations used in the Vacancy Report.
+source(
+  here::here(
+    "Scripts",
+    "05_data_visualisation.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+```
+
+<!--#  The following code chunk extracts statistics and counts creating new objects in the Global Environment. Functions from the scales package are used to reformat the values into human-friendly perceptual properties. This improves the readability of the markdown text below.-->
+
+```{r Data Extraction and Transformation}
+#| echo: false
+#| include: false
+
+# Key Points
+## First Paragraph
+positive_past_12_months_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_past_12_months"
+    ) |>
+  pull(statistic_count_value)
+
+positive_past_12_months <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_past_12_months"
+    ) |>
+  pull(statistic_count_character)
+
+negative_past_12_months_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_past_12_months"
+    ) |>
+  pull(statistic_count_value)
+
+negative_past_12_months <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_past_12_months"
+    ) |>
+  pull(statistic_count_character)
+
+monthly_average_most_recent_to_2019_comparison_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "monthly_average_most_recent_to_2019_comparison"
+    ) |>
+  pull(statistic_count_value)
+
+monthly_average_most_recent_to_2019_comparison <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "monthly_average_most_recent_to_2019_comparison"
+    ) |>
+  pull(statistic_count_character)
+
+
+## Bullet Point 1
+monthly_percentage_change_most_recent_previous_month <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "monthly_percentage_change_most_recent_previous_month"
+    ) |>
+  pull(statistic_count_character)
+
+monthly_absolute_change_most_recent_previous_month <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "monthly_absolute_change_most_recent_previous_month"
+    ) |>
+  pull(statistic_count_character)
+
+monthly_absolute_change_most_recent_previous_month_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "monthly_absolute_change_most_recent_previous_month"
+    ) |>
+  pull(statistic_count_value)
+
+most_recent_seasonally_adjusted <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "most_recent_seasonally_adjusted"
+    ) |>
+  pull(statistic_count_character)
+
+## Bullet Point 1.1
+annual_percentage_change_most_recent_previous_year <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year"
+    ) |>
+  pull(statistic_count_character)
+
+annual_percentage_change_most_recent_previous_year_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year"
+    ) |>
+  pull(statistic_count_value)
+
+annual_absolute_change_most_recent_previous_year <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_absolute_change_most_recent_previous_year"
+    ) |>
+  pull(statistic_count_character)
+
+annual_absolute_change_most_recent_previous_year_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_absolute_change_most_recent_previous_year"
+    ) |>
+  pull(statistic_count_value)
+
+
+
+# Bullet Point 2: States
+positive_states_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_states"
+    ) |>
+  pull(statistic_count_value)
+
+positive_states <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_states"
+    ) |>
+  pull(statistic_count_character)
+
+negative_states_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_states"
+    ) |>
+  pull(statistic_count_value)
+
+negative_states <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_states"
+    ) |>
+  pull(statistic_count_character)
+
+
+# Top 3 States: Percentage
+top_3_state_monthly_percentage_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_percentage_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_percentage_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_percentage_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_percentage_change_third <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_percentage_change_third"
+    ) |>
+  pull(statistic_count_character)
+
+# Top 3 States: Absolute - Value
+top_3_state_monthly_absolute_change_first_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_value)
+
+top_3_state_monthly_absolute_change_second_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_value)
+
+top_3_state_monthly_absolute_change_third_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_third"
+    ) |>
+  pull(statistic_count_value)
+
+# Top 3 States: Absolute - Character
+top_3_state_monthly_absolute_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_absolute_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_absolute_change_third <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_absolute_change_third"
+    ) |>
+  pull(statistic_count_character)
+
+# Top 3 States: State Names
+top_3_state_monthly_state_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_state_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_state_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_state_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+top_3_state_monthly_state_change_third <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_3_state_monthly_state_change_third"
+    ) |>
+  pull(statistic_count_character)
+
+
+
+
+
+# Bullet Point 3: Skills
+positive_skills_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_skills"
+    ) |>
+  pull(statistic_count_value)
+
+positive_skills <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_skills"
+    ) |>
+  pull(statistic_count_character)
+
+negative_skills_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_skills"
+    ) |>
+  pull(statistic_count_value)
+
+negative_skills <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_skills"
+    ) |>
+  pull(statistic_count_character)
+
+
+# Top 2 Skills: Percentage
+top_2_skills_monthly_percentage_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_percentage_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_skills_monthly_percentage_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_percentage_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+
+
+# Top 2 Skills: Absolute - Value
+top_2_skills_monthly_absolute_change_first_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_value)
+
+top_2_skills_monthly_absolute_change_second_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_value)
+
+
+# Top 2 Skills: Absolute - Character
+top_2_skills_monthly_absolute_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_skills_monthly_absolute_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+
+# Top 2 Skills: Skills Names
+top_2_skills_monthly_skills_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_skills_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_skills_monthly_skills_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_skills_monthly_skills_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+
+
+
+# Bullet Point 4: Anzsco
+positive_anzsco_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_anzsco"
+    ) |>
+  pull(statistic_count_value)
+
+positive_anzsco <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "positive_anzsco"
+    ) |>
+  pull(statistic_count_character)
+
+negative_anzsco_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_anzsco"
+    ) |>
+  pull(statistic_count_value)
+
+negative_anzsco <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "negative_anzsco"
+    ) |>
+  pull(statistic_count_character)
+
+
+# Top 2 / Bottom 1 Anzsco: Percentage
+top_2_anzsco_monthly_percentage_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_percentage_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_anzsco_monthly_percentage_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_percentage_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+bottom_1_anzsco_monthly_percentage_change <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "bottom_1_anzsco_monthly_percentage_change"
+    ) |>
+  pull(statistic_count_character)
+
+# Top 2 / Bottom 1 Anzsco: Absolute - Value
+top_2_anzsco_monthly_absolute_change_first_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_value)
+
+top_2_anzsco_monthly_absolute_change_second_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_value)
+
+bottom_1_anzsco_monthly_absolute_change_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "bottom_1_anzsco_monthly_absolute_change"
+    ) |>
+  pull(statistic_count_value)
+
+
+# Top 2 / Bottom 1 Anzsco: Absolute - Character
+top_2_anzsco_monthly_absolute_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_absolute_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_anzsco_monthly_absolute_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_absolute_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+bottom_1_anzsco_monthly_absolute_change <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "bottom_1_anzsco_monthly_absolute_change"
+    ) |>
+  pull(statistic_count_character)
+
+
+# Top 2 / Bottom 1 Anzsco: Anzsco Names
+top_2_anzsco_monthly_anzsco_change_first <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_anzsco_change_first"
+    ) |>
+  pull(statistic_count_character)
+
+top_2_anzsco_monthly_anzsco_change_second <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "top_2_anzsco_monthly_anzsco_change_second"
+    ) |>
+  pull(statistic_count_character)
+
+bottom_1_anzsco_monthly_anzsco_change <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "bottom_1_anzsco_monthly_anzsco_change"
+    ) |>
+  pull(statistic_count_character)
+
+
+
+
+
+# Bullet Point 5: Metropolitan vs. Regions
+metropolitan_proportion_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "metropolitan_proportion"
+    ) |>
+  pull(statistic_count_value)
+
+regional_proportion_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "regional_proportion"
+    ) |>
+  pull(statistic_count_value)
+
+metropolitan_proportion <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "metropolitan_proportion"
+    ) |>
+  pull(statistic_count_character)
+
+regional_proportion <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "regional_proportion"
+    ) |>
+  pull(statistic_count_character)
+
+
+annual_percentage_change_most_recent_previous_year_metropolitan_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year_metropolitan"
+    ) |>
+  pull(statistic_count_value)
+
+annual_percentage_change_most_recent_previous_year_regional_value <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year_regional"
+    ) |>
+  pull(statistic_count_value)
+
+annual_percentage_change_most_recent_previous_year_metropolitan <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year_metropolitan"
+    ) |>
+  pull(statistic_count_character)
+
+annual_percentage_change_most_recent_previous_year_regional <- statistics_and_counts_key_points |>
+  filter(
+    statistic_count_name == "annual_percentage_change_most_recent_previous_year_regional"
+    ) |>
+  pull(statistic_count_character)
+```
+
+<!--#  The following code chunk forms the conditional logic for the report. The magnitude and direction of the statistics and counts will determine the text in the report.-->
+
+```{r Conditional Logic}
+#| echo: false
+#| include: false
+
+# Key Points
+## First Paragraph
+# Inspect the change in vacancy numbers in the past 12 months
+if(positive_past_12_months_value > negative_past_12_months_value) {
+  cond_past_12_months <- "increased"
+  change_past_12_months <- positive_past_12_months
+} else {
+  cond_past_12_months <- "decreased"
+  change_past_12_months <- negative_past_12_months
+}
+
+# Compare monthly average of 2019 with the most recent vacancy number
+if(monthly_average_most_recent_to_2019_comparison_value > 0) {
+  cond_first_paragraph <- "more"
+} else {
+  cond_first_paragraph <- "less"
+}
+
+
+
+## Bullet Point 1
+if(monthly_absolute_change_most_recent_previous_month_value > 0) {
+  cond_bullet_point_1_01 <- "increased"
+  cond_bullet_point_1_02 <- "up"
+} else {
+  cond_bullet_point_1_01 <- "decreased"
+  cond_bullet_point_1_02 <- "down"
+}
+
+### Bullet Point 1.1
+if(annual_absolute_change_most_recent_previous_year_value > 0) {
+  cond_bullet_point_1_11 <- "increased"
+  cond_bullet_point_1_12 <- "up"
+} else {
+  cond_bullet_point_1_11 <- "decreased"
+  cond_bullet_point_1_12 <- "down"
+}
+
+
+## Bullet Point 2: States
+# Calculate how many states are positive or negative?
+if(positive_states_value > negative_states_value) {
+  cond_bullet_point_2_01 <- "increased"
+  cond_bullet_point_2_02 <- positive_states
+} else {
+  cond_bullet_point_2_01 <- "decreased"
+  cond_bullet_point_2_02 <- negative_states
+}
+if(positive_states_value == 8 | negative_states_value == 8) {
+  cond_bullet_point_2_02 <- "all"
+}
+if(positive_states_value == 4) {
+  cond_bullet_point_2_02 <- "half of the"
+}
+
+# Calculate whether the largest changes were positive or negative.
+if(top_3_state_monthly_absolute_change_first_value > 0) {
+  cond_bullet_point_2_03 <- "up"
+} else {
+  cond_bullet_point_2_03 <- "down"
+}
+
+if(top_3_state_monthly_absolute_change_second_value > 0) {
+  cond_bullet_point_2_04 <- "up"
+} else {
+  cond_bullet_point_2_04 <- "down"
+}
+
+if(top_3_state_monthly_absolute_change_third_value > 0) {
+  cond_bullet_point_2_05 <- "up"
+} else {
+  cond_bullet_point_2_05 <- "down"
+}
+
+
+
+## Bullet Point 3: Skills
+# Calculate how many skills are positive or negative?
+if(positive_skills_value > negative_skills_value) {
+  cond_bullet_point_3_01 <- "increased"
+  cond_bullet_point_3_02 <- positive_skills
+} else {
+  cond_bullet_point_3_01 <- "decreased"
+  cond_bullet_point_3_02 <- negative_skills
+}
+if(positive_skills_value == 5 | negative_skills_value == 5) {
+  cond_bullet_point_3_02 <- "all"
+}
+
+# Calculate whether the largest changes were positive or negative.
+if(top_2_skills_monthly_absolute_change_first_value > 0) {
+  cond_bullet_point_3_03 <- "up"
+} else {
+  cond_bullet_point_3_03 <- "down"
+}
+
+if(top_2_skills_monthly_absolute_change_second_value > 0) {
+  cond_bullet_point_3_04 <- "up"
+} else {
+  cond_bullet_point_3_04 <- "down"
+}
+
+
+
+
+## Bullet Point 4: Anzsco
+# Calculate how many anzsco are positive or negative?
+if(positive_anzsco_value > negative_anzsco_value) {
+  cond_bullet_point_4_01 <- "increased"
+  cond_bullet_point_4_02 <- positive_anzsco
+} else {
+  cond_bullet_point_4_01 <- "decreased"
+  cond_bullet_point_4_02 <- negative_anzsco
+}
+if(positive_anzsco_value == 8 | negative_anzsco_value == 8) {
+  cond_bullet_point_4_02 <- "all"
+}
+
+# Calculate whether the largest changes were positive or negative.
+if(top_2_anzsco_monthly_absolute_change_first_value > 0) {
+  cond_bullet_point_4_03 <- "up"
+} else {
+  cond_bullet_point_4_03 <- "down"
+}
+
+if(top_2_anzsco_monthly_absolute_change_second_value > 0) {
+  cond_bullet_point_4_04 <- "up"
+} else {
+  cond_bullet_point_4_04 <- "down"
+}
+
+if(bottom_1_anzsco_monthly_absolute_change_value > 0) {
+  cond_bullet_point_4_05 <- "up"
+} else {
+  cond_bullet_point_4_05 <- "down"
+}
+
+
+
+
+
+## Bullet Point 5: Metropolitan vs. Regional
+# Are the share of job ads greater in metropolitan or regions?
+if(metropolitan_proportion_value > regional_proportion_value) {
+  cond_bullet_point_5_01 <- "metropolitan"
+  cond_bullet_point_5_02 <- metropolitan_proportion
+  cond_bullet_point_5_03 <- "capital cities"
+} else {
+  cond_bullet_point_5_01 <- "regions"
+  cond_bullet_point_5_02 <- regional_proportion
+  cond_bullet_point_5_03 <- "regional areas"
+}
+
+
+
+# Have job ads increased or decreased in regional areas?
+if(annual_percentage_change_most_recent_previous_year_regional_value > 0) {
+  cond_bullet_point_5_04 <- "increased"
+  cond_bullet_point_5_05 <- "up"
+} else {
+  cond_bullet_point_5_04 <- "decreased"
+  cond_bullet_point_5_05 <- "down"
+}
+
+# Compare metropolitan vs. regional areas
+if(abs(annual_percentage_change_most_recent_previous_year_metropolitan_value) > abs(annual_percentage_change_most_recent_previous_year_regional_value)) {
+  cond_bullet_point_5_06 <- "larger"
+} else {
+  cond_bullet_point_5_06 <- "smaller"
+}
+
+# Have job ads increased or decreased in metropolitan areas?
+if(annual_percentage_change_most_recent_previous_year_metropolitan_value > 0) {
+  cond_bullet_point_5_07 <- "increase"
+  cond_bullet_point_5_08 <- "up"
+} else {
+  cond_bullet_point_5_07 <- "decrease"
+  cond_bullet_point_5_08 <- "down"
+}
+```
+
+<!--#  The following code chunk creates a csv file for the JSA IVI Website Update. This is used by the Digital Team to update the HighChart. -->
+
+```{r}
+#| echo: false
+#| include: false
+
+data_viz_ivi_abs_csv <- data_viz_ivi_abs |>
+  mutate(
+    date = date |>
+      format("%b-%y"),
+    job_advertisements = job_advertisements |>
+      round() |>
+      as.character(),
+    unemployment_rate = (unemployment_rate * 100) |>
+      round(1) |>
+      as.character() |> 
+      replace_na(" ")
+  ) |>
+  
+  # Reshape columns to rows
+  pivot_longer(cols = -date) |>
+  pivot_wider(names_from = date, values_from = value) |> 
+  
+  # Change names
+  mutate(
+    Series = case_when(
+      name == "job_advertisements" ~ "Seasonally adjusted job advertisements",
+      name == "unemployment_rate" ~ "Seasonally adjusted unemployment rate %",
+    ),
+    .before = name
+  ) |> 
+  select(-name) |> 
+  
+  # Ensure unemployment comes first
+  arrange(desc(Series))
+  
+write_csv(data_viz_ivi_abs_csv,
+          here(
+            "Output",
+            "Website Updates",
+            str_c(
+              "IVI to ",
+              {max(data_viz_ivi_abs$date) |> format("%b%y")},
+              ".csv"
+            )
+          ))
+```
+
+# Vacancy Report
+
+## **`r measurement_date_my`**
+
+### Released **`r release_date_dmy`**
+
+#### Job ads **`r cond_bullet_point_1_02`** **`r monthly_percentage_change_most_recent_previous_month`** nationally in **`r measurement_date_m`**
+
+::: {custom-style="Key Points"}
+This month's report shows the period of record growth in advertisements following the COVID-19 pandemic is ending, with vacancy numbers having **`r cond_past_12_months`** in **`r change_past_12_months`** of the past 12 months. Despite this, vacancy numbers remain at elevated levels, with around **`r monthly_average_most_recent_to_2019_comparison`** **`r cond_first_paragraph`** advertisements in the labour market presently than compared with the monthly average for 2019.
+:::
+
+::: {custom-style="Key Points Bullet 1"}
+Online job advertisements at the national level **`r cond_bullet_point_1_01`** in **`r measurement_date_my`** (**`r cond_bullet_point_1_02`** by **`r monthly_percentage_change_most_recent_previous_month`** or **`r monthly_absolute_change_most_recent_previous_month`**) to stand at **`r most_recent_seasonally_adjusted`**.
+:::
+
+::: {custom-style="Key Points Bullet 2"}
+Over the year to **`r measurement_date_my`**, online job advertisements **`r cond_bullet_point_1_11`** by **`r annual_percentage_change_most_recent_previous_year`** (or **`r annual_absolute_change_most_recent_previous_year`**). Vacancy numbers, though, are at high levels historically.
+:::
+
+::: {custom-style="Key Points Bullet 2"}
+This **downward** trend is present in other demand indicators, with the Australian Bureau of Statistics' [*Job Vacancies, Australia*](https://www.abs.gov.au/statistics/labour/jobs/job-vacancies-australia/latest-release) series showing a **[INSERT YEARLY CHANGE (%)] increase/decrease** in vacancies over the year to **`r abs_job_vacancies_reference_date_my`**.[^1]
+:::
+
+[^1]: Australian Bureau of Statistics (ABS), ‘[Job Vacancies, Australia](https://www.abs.gov.au/statistics/labour/jobs/job-vacancies-australia/latest-release)’, seasonally adjusted data, **`r abs_job_vacancies_reference_date_my`**.
+
+
+::: {custom-style="Key Points Bullet 1"}
+Recruitment activity **`r cond_bullet_point_2_01`** across **`r cond_bullet_point_2_02`** states and territories over the month. The largest percentage changes were recorded in **`r top_3_state_monthly_state_change_first`** (**`r cond_bullet_point_2_03`** by **`r top_3_state_monthly_percentage_change_first`** or **`r top_3_state_monthly_absolute_change_first`** job advertisements) followed by **`r top_3_state_monthly_state_change_second`** (**`r cond_bullet_point_2_04`** by **`r top_3_state_monthly_percentage_change_second`** or **`r top_3_state_monthly_absolute_change_second`**) and **`r top_3_state_monthly_state_change_third`** (**`r cond_bullet_point_2_05`** by **`r top_3_state_monthly_percentage_change_third`** or **`r top_3_state_monthly_absolute_change_third`**).
+:::
+
+::: {custom-style="Key Points Bullet 1"}
+Over the month, advertisements **`r cond_bullet_point_3_01`** across **`r cond_bullet_point_3_02`** Skill Level groups. The largest percentage changes were recorded for **`r top_2_skills_monthly_skills_change_first`** occupations (**`r cond_bullet_point_3_03`** by **`r top_2_skills_monthly_percentage_change_first`** or **`r top_2_skills_monthly_absolute_change_first`** job advertisements) followed by **`r top_2_skills_monthly_skills_change_second`** occupations (**`r cond_bullet_point_3_04`** by **`r top_2_skills_monthly_percentage_change_second`** or **`r top_2_skills_monthly_absolute_change_second`**).
+:::
+
+::: {custom-style="Key Points Bullet 1"}
+Advertisements **`r cond_bullet_point_4_01`** across **`r cond_bullet_point_4_02`** Major Occupation groups over the month. The largest percentage change was for **`r top_2_anzsco_monthly_anzsco_change_first`** (**`r cond_bullet_point_4_03`** by **`r top_2_anzsco_monthly_percentage_change_first`** or **`r top_2_anzsco_monthly_absolute_change_first`** job advertisements) followed by **`r top_2_anzsco_monthly_anzsco_change_second`** (**`r cond_bullet_point_4_04`** by **`r top_2_anzsco_monthly_percentage_change_second`** or **`r top_2_anzsco_monthly_absolute_change_second`**). The smallest percentage change was recorded for **`r bottom_1_anzsco_monthly_anzsco_change`** (**`r cond_bullet_point_4_05`** by **`r bottom_1_anzsco_monthly_percentage_change`** or **`r bottom_1_anzsco_monthly_absolute_change`**).
+:::
+
+::: {custom-style="Key Points Bullet 1"}
+Recruitment activity was concentrated in **`r cond_bullet_point_5_01`** Australia, with **`r cond_bullet_point_5_02`** of job advertisements in **`r measurement_date_my`** found in Australia's **`r cond_bullet_point_5_03`**. Over the last 12 months, job advertisements have **`r cond_bullet_point_5_04`** in regional areas (**`r cond_bullet_point_5_05`** by **`r annual_percentage_change_most_recent_previous_year_regional`**); however, a **`r cond_bullet_point_5_06`** **`r cond_bullet_point_5_07`** was recorded for capital cities (**`r cond_bullet_point_5_08`** by **`r annual_percentage_change_most_recent_previous_year_metropolitan`**).
+:::
+
+
+Each month the IVI report provides a more detailed analysis of a particular labour market segment. This month's report spotlights **`r spotlight_occupation`**.
+
+
+
+\pagebreak
+
+```{r Values Boxes}
+#| echo: false
+
+# Create value boxes text
+values_box_text_1 <- str_c(
+  "Online job advertisements ",
+  cond_bullet_point_1_01,
+  " by ",
+  monthly_percentage_change_most_recent_previous_month,
+  " (or ",
+  monthly_absolute_change_most_recent_previous_month,
+  " job advertisements) in ",
+  measurement_date_my,
+  " to stand at ",
+  most_recent_seasonally_adjusted,
+  "."
+)
+
+values_box_text_2 <- str_c(
+  "Over the year to ",
+  measurement_date_my,
+  ", online job advertisements ",
+  cond_bullet_point_1_11,
+  " by ",
+  annual_percentage_change_most_recent_previous_year,
+  " (or ",
+  annual_absolute_change_most_recent_previous_year,
+  " job advertisements)."
+)
+
+
+# Create values boxes tibble
+table_values_boxes <- tibble(
+  column_1 = c(
+    most_recent_seasonally_adjusted,
+    "Online\nJob Advertisements",
+    "(seasonally adjusted)",
+    {
+      case_when(
+        monthly_absolute_change_most_recent_previous_month_value >  0 ~ "▲",
+        monthly_absolute_change_most_recent_previous_month_value <  0 ~ "▼",
+        monthly_absolute_change_most_recent_previous_month_value == 0 ~ "▬"
+      )
+    },
+    {
+      case_when(
+        annual_percentage_change_most_recent_previous_year_value >  0 ~ "▲",
+        annual_percentage_change_most_recent_previous_year_value <  0 ~ "▼",
+        annual_percentage_change_most_recent_previous_year_value == 0 ~ "▬"
+      )
+    },
+    values_box_text_1,
+    values_box_text_2
+  ),
+  column_2 = c(
+    most_recent_seasonally_adjusted,
+    "Online\nJob Advertisements",
+    "(seasonally adjusted)",
+    monthly_percentage_change_most_recent_previous_month,
+    annual_percentage_change_most_recent_previous_year,
+    values_box_text_1,
+    values_box_text_2
+  ),
+  column_3 = c(
+    most_recent_seasonally_adjusted,
+    "Online\nJob Advertisements",
+    "(seasonally adjusted)",
+    "Monthly change",
+    "Annual change",
+    values_box_text_1,
+    values_box_text_2
+  )
+)
+
+
+# Create flextable and apply aesthetics and formatting
+ft_table_values_boxes <- table_values_boxes |> 
+  flextable() |>
+  theme_jsa_ivi_value_boxes()
+
+ft_table_values_boxes
+```
+
+
+\pagebreak
+
+##### \[HEADER FOR IVI SPOTLIGHT\]
+
+\[LOREM IPSUM...\]
+
+\pagebreak
+
+#### Internet Vacancy Index Summary Sheet - **`r measurement_date_my`**
+
+```{r Summary Sheet - State}
+#| echo: false
+ft_table_summary_sheet_state <- table_summary_sheet_state |> 
+  select_relevant_variables(state_full_name) |> 
+  flextable() |> 
+  theme_jsa_ivi_summary_sheet_base() |> 
+  theme_jsa_ivi_summary_sheet_state()
+
+ft_table_summary_sheet_state |> 
+  align(
+      align = c("left", rep("right", 7)),
+      part  = "all"
+    )
+```
+
+\
+
+```{r Summary Sheet - ANZSCO}
+#| echo: false
+ft_table_summary_sheet_anzsco <- table_summary_sheet_anzsco |> 
+  select_relevant_variables(anzsco_title) |> 
+  flextable() |> 
+  theme_jsa_ivi_summary_sheet_base() |> 
+  theme_jsa_ivi_summary_sheet_anzsco_skill()
+
+ft_table_summary_sheet_anzsco |> 
+  align(
+      align = c("left", rep("right", 7)),
+      part  = "all"
+    )
+```
+
+\
+
+```{r Summary Sheet - Skill}
+#| echo: false
+ft_table_summary_sheet_skill <- table_summary_sheet_skill |> 
+  select_relevant_variables(skill_level_group) |> 
+  flextable() |> 
+  theme_jsa_ivi_summary_sheet_base() |> 
+  theme_jsa_ivi_summary_sheet_anzsco_skill()
+
+ft_table_summary_sheet_skill |> 
+  align(
+      align = c("left", rep("right", 7)),
+      part  = "all"
+    )
+```
+
+::: {custom-style="Source"}
+\*Includes at least two years of on-the-job training.\
+Source: Jobs and Skills Australia, Internet Vacancy Index, seasonally adjusted data, **`r measurement_date_my`**.
+:::
+
+\pagebreak
+
+*Line graph showing trends in employment and job advertisements. From January 2006 to `r measurement_date_my`. Vacancies peaked in April 2008 which represents the pre-GFC peak recruitment activity. Vacancies rose again in March 2011, which was the mining boom peak recruitment. Vacancies and employment experienced a downturn in April 2020 due to the COVID-19 pandemic, although both employment and job advertisements have recovered and are presently at record levels.*
+
+::: {custom-style="Caption"}
+Figure 1: Job advertisements and unemployment rate, January 2006 to **`r measurement_date_my`**
+:::
+
+```{r Figure: Job advertisements and unemployment rate, January 2006 to X}
+#| echo: false
+#| fig-height: 3.14
+#| fig-width: 6.55
+#| dpi: 400
+#| warning: false
+
+ggplot_data_viz_ivi_australia
+```
+
+
+![](Images/figure_legend.jpg){fig-align="center"}
+
+::: {custom-style="Source"}
+Source: Australian Bureau of Statistics, Labour Force, Australia, seasonally adjusted data, **`r abs_lfs_release_date_my`**; Jobs and Skills Australia, Internet Vacancy Index, seasonally adjusted data, **`r measurement_date_my`**.
+:::
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+::: {custom-style="Footer Text"}
+The next IVI release is scheduled for **`r next_ivi_release_date`**. The IVI is published on the JSA website at [jobsandskills.gov.au/data/internet-vacancy-index](https://www.jobsandskills.gov.au/data/internet-vacancy-index).
+:::
+
+\
+\
+\
+
+The Internet Vacancy Index (IVI) is a monthly data series measuring online job advertisements, compiled by Jobs and Skills Australia (JSA). The IVI counts job advertisements newly lodged on the SEEK, CareerOne and Workforce Australia online job boards. Commencing in 2006, the IVI is the longest continuous time series for vacancy data in Australia. JSA research indicates the proportion of all vacancies covered by IVI has increased from 38% in 2016 to 57% in 2024. More detail on the IVI is available at [jobsandskills.gov.au/data/internet-vacancy-index](https://www.jobsandskills.gov.au/data/internet-vacancy-index).
+
+![](Images/footer_last_page.jpg){fig-align="center"}
+
+

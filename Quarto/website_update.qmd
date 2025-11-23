@@ -1,0 +1,133 @@
+---
+format: docx
+params:
+  date_today: "date_today"
+---
+
+<!--#  The following code chunk calls relevant R scripts that run relevant setup and configuration code, and load and transform the most recent IVI data. This code chunk and its output is not displayed in the quarto-produced word document through the use of the 'echo' and 'include' execution options.-->
+
+```{r Data Pipelines}
+#| echo: false
+#| include: false
+
+# Purpose: To load in packages, any custom-functions, and parameters
+# date_today is the main parameter determining the ivi_release_date,
+# spotlight_occupation, and next_ivi_release_date variables.
+date_today <- params$date_today
+
+source(
+  here::here(
+    "Scripts",
+    "00_setup_and_configuration.R"
+  )
+)
+
+
+
+# Purpose: To load in the most recent, finalised, long format IVI results.
+source(
+  here::here(
+    "Scripts",
+    "01_data_loading.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To create the absolute/percentage changes
+source(
+  here::here(
+    "Scripts",
+    "02_data_wrangling.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To subset the most recent, finalised, long format IVI results.
+#          This filtering minimises code duplication and potential coding error.
+source(
+  here::here(
+    "Scripts",
+    "03_data_subsetting.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To load in the most recent, finalised, long format IVI results.
+source(
+  here::here(
+    "Scripts",
+    "04_data_transformation.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+
+
+
+# Purpose: To create data visualisations used in the Vacancy Report.
+source(
+  here::here(
+    "Scripts",
+    "05_data_visualisation.R"
+  ),
+  echo = TRUE,
+  max.deparse.length = 1000
+)
+```
+
+## Website Update
+
+### Chart data
+```{r}
+#| echo: false
+data_viz_ivi_abs_csv <- data_viz_ivi_abs |>
+  mutate(
+    date = date |>
+      format("%b-%y"),
+    job_advertisements = job_advertisements |>
+      round() |>
+      as.character(),
+    unemployment_rate = (unemployment_rate * 100) |>
+      round(1) |>
+      as.character() |> 
+      replace_na(" ")
+  ) |>
+  
+  # Reshape columns to rows
+  pivot_longer(cols = -date) |>
+  pivot_wider(names_from = date, values_from = value) |> 
+  
+  # Change names
+  mutate(
+    Series = case_when(
+      name == "job_advertisements" ~ "Seasonally adjusted job advertisements",
+      name == "unemployment_rate" ~ "Seasonally adjusted unemployment rate %",
+    ),
+    .before = name
+  ) |> 
+  select(-name) |> 
+  
+  # Ensure unemployment comes first
+  arrange(desc(Series))
+  
+write_csv(data_viz_ivi_abs_csv,
+          here(
+            "Output",
+            "Website Updates",
+            str_c(
+              "IVI to ",
+              {max(data_viz_ivi_abs$date) |> format("%b%y")},
+              ".csv"
+            )
+          ))
+```
+

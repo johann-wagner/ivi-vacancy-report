@@ -1,0 +1,335 @@
+---
+title: "README"
+subtitle: "Vacancy Report Automation"
+author: "Nowcasting and Labour Demand Team"
+author-meta: "Johann Wagner"
+date: "June 7, 2024"
+
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-expand: 1
+    toc-title: Contents
+    
+    number-sections: true
+    page-layout: article
+    embed-resources: true
+    
+    link-external-icon: true
+    link-external-newwindow: true
+    
+    code-tools: true
+    
+    other-links:
+      - text: IVI Website
+        href: https://www.jobsandskills.gov.au/data/internet-vacancy-index
+---
+
+## Introduction
+
+This README file contains details on:
+
+-   [Folder structure](README.qmd#Folder%20Structure)
+
+-   [Prerequisites](README.qmd#Prerequisites)
+
+-   [User Guide: Instructions to run the Project](README.qmd#User%20Guide:%20Instructions%20to%20run%20the%20Project)
+
+-   [Contact Information](README.qmd#Contact%20Information)
+
+-   [Acknowledgements](README.qmd#Acknowledgements)
+
+::: callout-note
+This README html file was created using [Quarto](https://quarto.org/).
+:::
+
+### Context
+
+The [Internet Vacancy Index](https://www.jobsandskills.gov.au/data/internet-vacancy-index) (IVI) is a monthly count of online job advertisements compiled by Jobs and Skills Australia. Data are available by occupational groups, skill level groups, state or territory and by regional areas.
+
+In addition to the monthly IVI data releases, the [Vacancy Report](https://www.jobsandskills.gov.au/data/internet-vacancy-index#downloads) is a monthly publication summarising key points and insights for each respective IVI data release. Each month the Vacancy Report provides a more detailed analysis of a particular labour market segment. Additionally, several summary sheet tables and a time series visualisation are included at the end of the Report.
+
+### What is the purpose of this project?
+
+The IVI [Vacancy Report](https://www.jobsandskills.gov.au/data/internet-vacancy-index#downloads) is a monthly publication requiring lots of human time and resources. We developed an approach, which can **programmatically generate the draft report** including compiling the text, calculating the relevant summary statistics and rendering visualisations. This not only **minimises potential human error**, but also **saves on team resources** that can now be deployed for more creative and value-add tasks.
+
+## Folder Structure
+
+The root folder can be found in the *O: Network Drive*.
+
+::: panel-tabset
+### \[Archive\]
+
+The *\[Archive\]* folder contains non-development and non-production scripts and files.
+
+### \[Sandbox\]
+
+The *\[Sandbox\]* folder contains development and experimental scripts. This is so the same data can be used and the same custom functions can be called.
+
+### Data / Fonts
+
+The *Data* folder includes relevant external data sources, such as the ABS unemployment rates. The Fonts folder includes fonts used in the Report, currently only Arial is used.
+
+### Output
+
+The *Output* folder contains the produced Vacancy Reports.
+
+### Quarto / README / Scripts
+
+The *Quarto* folder includes all the relevant images, .qmd files, and reference files needed to render the Report. The Scripts folder loads, subsets, transforms, and creates data visualisations for the Report. The README folder includes all the relevant images and .qmd file needed to render this README html file.
+
+<!-- ### renv / .Rprofile -->
+
+<!-- The [`renv`](https://rstudio.github.io/renv/) package helps you create reproducible environments for your R projects. The *renv* folder contains all the relevant packages, package metadata, automated scripts that allows for an isolated, portable, and reproducible R project. Read up more on renv [here](https://rstudio.github.io/renv/). The *.Rprofile* is an R script that is automatically run everytime the .Rproj file is opened. -->
+
+### Vacancy Report Automation.Rproj
+
+The *Vacancy Report Automation.Rproj* is a file containing project-specific temporary files and allows the R Project to be opened in RStudio directly from File Explorer.
+:::
+
+## Prerequisites
+
+These prerequisites only need to be completed once.
+
+::: {.callout-warning collapse="true"}
+## Ensure you have RStudio installed
+
+Please ensure that you have RStudio successfully installed. Feel free to follow these [Service Desk Installation Instructions.](https://dese.service-now.com/servicedeskportal?id=kb_article_view&table=kb_knowledge&sys_kb_id=260546e4975ffd101ce13746f053af1b&recordUrl=%2Fkb_view.do%3Fsys_kb_id%3D260546e4975ffd101ce13746f053af1b).
+:::
+
+::: {.callout-warning collapse="true"}
+## Ensure you have access to O: Drive
+
+Additionally, please ensure that you have access to the O: Network Drive, as this is where the IVI data and the Project is stored. Please follow the [Service Desk Instructions](https://dese.service-now.com/servicedeskportal?id=sc_cat_item&sys_id=b9d3a5918750fd54f184edf83cbb3526&sysparm_category=274530161bbae8105f760edbdc4bcba2).
+:::
+
+### Ensure correct R packages are installed
+-   Ensure you setup the JSA CRAN Repo. Follow these [instructions](https://nscinsight-pkgs.skills.dis.gov.au/client/#/repos/prod-cran/setup).
+-   Ensure you have the correctly installed R packages by copy-pasting and running this code in your RStudio Console:
+
+```{r}
+#| eval: false
+#| code-fold: true
+#| code-summary: "Click here to reveal the code (Copy code by hovering to the top-right of the code box)"
+required_packages_using_jsa_cran <- c( # <1>
+  "tidyverse", # <1>
+  "readxl", # <1>
+  "janitor", # <1>
+  "ggplot2", # <1>
+  "scales", # <1>
+  "quarto", # <1>
+  "rmarkdown", # <1>
+  "flextable", # <1>
+  "here", # <1>
+  "fs" # <1>
+) # <1>
+
+required_packages_using_wininet_method <- c( # <2>
+  "magick", # <2>
+  "ggpattern", # <2>
+  "ggthemes", # <2>
+  "extrafont", # <2>
+  "english" # <2>
+) # <2>
+
+lapply(required_packages_using_jsa_cran, # <3>
+       function(x) { # <3>
+         if (!file.exists(file.path("C:/Developer/R-Studio/Library", # <3>
+                                    x, # <3>
+                                    "DESCRIPTION"))) { # <3>
+           install.packages(x) # <3>
+         } else { # <3>
+           paste(x, "package is already installed!") # <3>
+         } # <3>
+       }) # <3>
+ # <3>
+lapply(required_packages_using_wininet_method, # <3>
+       function(x) { # <3>
+         if (!file.exists(file.path("C:/Developer/R-Studio/Library", # <3>
+                                    x, # <3>
+                                    "DESCRIPTION"))) { # <3>
+           install.packages(x, method = "wininet") # <3>
+         } else { # <3>
+           paste(x, "package is already installed!") # <3>
+         } # <3>
+       }) # <3>
+```
+1. These are packages that are listed on JSA's Posit Package Manager.
+2. These packages must be installed from CRAN directly.
+3. These functions check whether the package is installed. If not, then it installs it for you.
+
+This will ensure that all the relevant packages needed to run the project have been installed.
+
+## User Guide: Instructions to run the Project
+
+### Check *draft_release_schedule.xlsx* file
+
+Ensure the ***draft_release_schedule.xlsx*** has been updated with the correct `spotlight_occupation` for the next IVI release. The *.xlsx* file can be found here:
+
+> *O:*\\NSC *- OIAS*\\OSAS*\\14 Vacancy Report\\24 Report automation*\\Vacancy *Report Automation*
+
+![](Images/1_01_root_folder_rproj.png)
+
+***draft_release_schedule.xlsx:***
+
+![](Images/1_02_root_folder_rproj.png)
+
+### Check *.RDS* files
+
+Ensure that the correct *.RDS* files are in the following folder:
+
+> O:\NSC - OIAS\OSAS\\14 Vacancy Report\\01 IVI Files\\07 Long Dataframes\\.RDS Files\\Archive
+
+Check further in the sub-folders for the respective year and month. The below files should be present.
+
+![](Images/check_rds_folder.png)
+
+### Open *Vacancy Report Automation.Rproj* file
+
+Open the *Vacancy Report Automation.Rproj* file.
+
+![](Images/3_01_root_folder_rproj.png)
+
+### Check the ABS unemployment data
+
+Download the latest ABS unemployment rate data from the [ABS Labour Force, Australia website](https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/latest-release) by scrolling down to **Data downloads** and download the **Table 1. Labour force status by Sex, Australia - Trend, Seasonally adjusted and Original** .xlsx file.
+
+Open the *Data* folder.
+
+Delete the existing *abs_unemployment_rate.xlsx* file.
+
+Rename the downloaded file as *abs_unemployment_rate.xlsx* and save in the *Data* folder.
+
+### Open the *driver.R* file
+
+Open the *driver.R* file. This should open in your RStudio Session within the Vacancy Report Automation Project.
+
+![](Images/4_01_root_folder_driver.png)
+
+### **Source** the *driver.R* file
+
+Double check that you are in the *Vacancy Report Automation* project by looking at the top-right in RStudio.
+
+-   Click **Source** on the *driver.R* file in RStudio.
+-   This will run all the relevant scripts and Quarto files rendering the Vacancy Report using next month IVI data.
+
+![](Images/5_01_rstudio_driver.png)
+
+### Open the Report
+
+The Report should take about 1-2 minutes to render and will be outputted in the *Output* folder with the respective measurement month and year. Open the word document.
+
+![](Images/6_01_output_folder.png)
+
+### Manual steps
+
+There are currently **a handfull** of manual steps needed to *complete* the Vacancy Report generation.
+
+All further steps are double checking the document details are accurate, sense checking the language, and making changes to the formatting.
+
+#### Select label and choose OFFICIAL
+
+-   Select label and choose **OFFICIAL**.
+
+#### Move the Values Box
+
+-   Click-and-drag the values box from page 2 onto page 1.
+
+![](Images/7_01_move_values_box.png)
+
+-   Right click on the table and select *Table properties...*.
+
+![](Images/7_02_move_values_box.png)
+
+-   Select *Positioning...*
+
+-   Set *Relative to:* to **Page**.
+
+-   Set *Position:* to **14.75 cm** and **10.75 cm** for *Horizontal* and *Vertical*, respectively.
+
+-   Click **OK**!
+
+![](Images/7_03_move_values_box.png)
+
+#### Move the Footer Image
+
+-   Change the wrapping to **Behind Text**.
+-   Ensure the image has moved to the last page.
+
+![](Images/7_11_move_footer_image.png)
+
+-   Select *Size and Position...*.
+
+![](Images/7_12_move_footer_image.png)
+
+-   Select the *Size* tab.
+    -   Set the *Absolute Height* to **11.35 cm**.
+    -   Set the *Absolute Width* to **21 cm**.
+
+![](Images/7_13_move_footer_image.png)
+
+-   Select the *Position* tab.
+    -   Set the *Horizontal* alignment to **Centered**.
+    -   Set the *Vertical* alignment to **Bottom**.
+    -   Set *relative to* to **Page** for [both]{.underline} *Horizontal* and *Vertical*.
+-   Click **OK**!
+
+![](Images/7_14_move_footer_image.png)
+
+#### Update Month and Year in Footers
+
+-   Change the footer to the respective *Month* and *Year*. Ensure this is done on **both page 1 and page 2**, as there are different header/footer settings for the first page and the rest of the document. Double check that this has resulted in the correct footer changes throughout the rest of the document.
+
+![](Images/7_21_update_month_year.png)
+
+#### Remove the footnote separator
+
+-   Select the View tab and go into 'Draft' mode.
+
+![](Images/7_31_remove_footnote_separator.png)
+
+-   Double-click on the footnote marker. A Footnotes section at the bottom of the page should pop up.
+
+![](Images/7_32_remove_footnote_separator.png)
+
+-   Select Footnote Separator from the dropdown menu and delete the horizontal dividing bar below.
+
+![](Images/7_33_remove_footnote_separator.png)
+
+-   You can return to 'Print Layout' mode in the Views tab (see top left corner). Ensure this has been applied to the footnote sections throughout the document.
+
+#### Cut-paste alt. text into time series image
+
+-   Cut-and-paste the *italicised* alt. text (see above the time series image) into the time series image alt. text box by right-clicking on the image. The automation will adjust the respective date in the alt. text.
+
+![](Images/7_41_cut_paste_alt_text.png)
+
+#### Update the ABS Job Vacancies statistics
+
+-   Go to the [latest release of the ABS Job Vacancies, Australia website](https://www.abs.gov.au/statistics/labour/jobs/job-vacancies-australia/latest-release).
+
+-   Find the *Job vacancies, public and private sector* table and use the *Yearly change (%)* for the *seasonally adjusted Public and Private Sector*.
+
+![](Images/7_51_abs_job_vacancies.png)
+
+-   Manually change the relevant Key Points bullet point in the Report:
+    -   the yearly change percentage,
+    -   change *increase* or *decrease*, and
+    -   Double-check the reference month year is correct (find at the top of the ABS website).
+
+![](Images/7_52_abs_job_vacancies.png)
+
+#### Final Human Sense Checks
+
+The final check is to now **double-check all the values and the language in the report!** Well done! 😊
+
+## Contact Information
+
+1.  Main Author: [Johann Wagner](johann.wagner@jobsandskills.gov.au)
+2.  Main User: [Chris Mcloughlin](christopher.mcloughlin@jobsandskills.gov.au)
+3.  Director of Nowcasting and Labour Demand: [Yin Shan](yin.shan@jobsandskills.gov.au)
+
+## Acknowledgements
+
+Thanks to [Chris](christopher.mcloughlin@jobsandskills.gov.au) for his assistance in reviewing the automation project and being the main user of the project! 😊
